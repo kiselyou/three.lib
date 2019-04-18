@@ -1,0 +1,38 @@
+{
+  "name": "three.lib",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "build": "NODE_ENV='production' webpack --mode production --env.patch",
+    "watch": "NODE_ENV='development' webpack --mode development --watch --progress"
+  },
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^7.1.5",
+    "babel-preset-es2015": "^6.24.1",
+    "copy-webpack-plugin": "^4.5.1",
+    "css-loader": "^1.0.0",
+    "dat.gui": "^0.7.2",
+    "events": "^3.0.0",
+    "extract-text-webpack-plugin": "^4.0.0-beta.0",
+    "file-loader": "^1.1.11",
+    "html-webpack-plugin": "^3.1.0",
+    "less": "^3.8.0",
+    "less-loader": "^4.1.0",
+    "nodemon": "^1.18.4",
+    "object-path": "^0.11.4",
+    "path": "^0.12.7",
+    "qs": "^6.5.2",
+    "stats-js": "^1.0.0-alpha1",
+    "style-loader": "^0.21.0",
+    "three": "^0.103.0",
+    "uglifyjs-webpack-plugin": "^1.2.4",
+    "url-loader": "^1.1.1",
+    "uuid": "^3.3.2",
+    "val-loader": "^1.1.1",
+    "webpack": "^4.16.4",
+    "webpack-cli": "^3.1.0"
+  }
+}
