@@ -1,6 +1,5 @@
-import * as THREE from 'three/src/Three'
+import * as THREE from 'three'
 import EventEmitter from 'events'
-import {Object3D} from "three/src/core/Object3D";
 
 let inst = null
 const ANIMATION = 'base-scene-animation'
@@ -92,7 +91,7 @@ class BaseScene {
     this.renderer.setPixelRatio(window.devicePixelRatio)
     this.renderer.shadowMap.enabled = true
     this.renderer.gammaOutput = true;
-    this.renderer.gammaInput = false
+    this.renderer.gammaInput = true
     return this
   }
 
@@ -106,8 +105,7 @@ class BaseScene {
     this.camera.fov = 45
     this.camera.aspect = width / height
     this.camera.near = 1
-    this.camera.far= 1000
-
+    this.camera.far = 1000
     this.camera.lookAt(0, -4, -10)
     this.camera.position.set(0, 5, 10)
     this.camera.updateProjectionMatrix()
@@ -119,8 +117,8 @@ class BaseScene {
    * @returns {BaseScene}
    */
   prepareScene() {
-    this.scene.background = new THREE.Color(0xa0a0a0)
-    this.scene.fog = new THREE.Fog(0xa0a0a0, 10, 60)
+    this.scene.background = new THREE.Color(0x050505)
+    this.scene.fog = new THREE.Fog(0x050505, 10, 50)
     return this
   }
 

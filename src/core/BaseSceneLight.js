@@ -15,6 +15,48 @@ class BaseSceneLight extends THREE.Group {
      * @type {DirectionalLight|Object3D}
      */
     this.directionalLight = new THREE.DirectionalLight(0xffffff)
+
+    /**
+     *
+     * @type {AmbientLight|Object3D}
+     */
+    this.ambientLight = new THREE.AmbientLight(0x222222)
+
+    /**
+     *
+     * @type {Array.<SpotLight|Object3D>}
+     */
+    this.spotLights = [
+      new THREE.SpotLight( 0xffffff, 5, 1000 ),
+      new THREE.SpotLight( 0xffffff, 5, 1000 )
+    ]
+  }
+
+  /**
+   *
+   * @returns {BaseSceneLight}
+   */
+  enableSpotLights() {
+    this.spotLights[0].position.set(10, 25, 150)
+    this.spotLights[1].position.set(- 50, 75, 175)
+    for (const light of this.spotLights) {
+      light.angle = 0.5
+      light.penumbra = 0.5
+      light.castShadow = true
+      light.shadow.mapSize.width = 1024
+      light.shadow.mapSize.height = 1024
+      this.add(light)
+    }
+    return this
+  }
+
+  /**
+   *
+   * @returns {BaseSceneLight}
+   */
+  enableAmbientLight() {
+    this.add(this.ambientLight)
+    return this
   }
 
   /**

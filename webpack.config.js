@@ -87,6 +87,7 @@ const webpackConfig = {
     }),
     new CopyWebpack([
       { from: `src/playground/models`, to: 'src/playground/models' },
+      { from: `src/playground/textures`, to: 'src/playground/textures' },
     ]),
     new HtmlWebpack({
       template: `./src/index.html`,
