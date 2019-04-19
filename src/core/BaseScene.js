@@ -90,10 +90,9 @@ class BaseScene {
     const height = window.innerHeight
     this.renderer.setSize(width, height)
     this.renderer.setPixelRatio(window.devicePixelRatio)
-    this.renderer.shadowMap.enabled = false
-    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap
+    this.renderer.shadowMap.enabled = true
+    this.renderer.gammaOutput = true;
     this.renderer.gammaInput = false
-    this.renderer.gammaOutput = false
     return this
   }
 
@@ -109,8 +108,8 @@ class BaseScene {
     this.camera.near = 1
     this.camera.far= 1000
 
-    this.camera.lookAt(0, 0, 0)
-    this.camera.position.set(0, 0, 1)
+    this.camera.lookAt(0, -4, -10)
+    this.camera.position.set(0, 5, 10)
     this.camera.updateProjectionMatrix()
     return this
   }
@@ -121,7 +120,7 @@ class BaseScene {
    */
   prepareScene() {
     this.scene.background = new THREE.Color(0xa0a0a0)
-    this.scene.fog = new THREE.Fog(0xa0a0a0, 10, 50)
+    this.scene.fog = new THREE.Fog(0xa0a0a0, 10, 60)
     return this
   }
 
