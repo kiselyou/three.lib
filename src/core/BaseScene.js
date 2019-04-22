@@ -1,5 +1,8 @@
 import * as THREE from 'three'
 import EventEmitter from 'events'
+import CSS2DRenderer from './css-renderer/CSS2DRenderer'
+import CSS3DRenderer from './css-renderer/CSS3DRenderer'
+import Mouse3D from './mouse/Mouse3D'
 
 let inst = null
 const ANIMATION = 'base-scene-animation'
@@ -42,9 +45,32 @@ class BaseScene {
 
     /**
      *
+     * @type {CSS2DRenderer}
+     */
+    this.css2DRenderer = new CSS2DRenderer()
+
+    /**
+     *
+     * @type {CSS3DRenderer}
+     */
+    this.css3DRenderer = new CSS3DRenderer()
+
+    /**
+     *
+     * @type {Mouse3D}
+     */
+    this.mouse = new Mouse3D()
+
+    /**
+     *
      * @type {EventEmitter}
      */
     this.animationEvents = new EventEmitter()
+
+    this._options = {
+      css2DRendererEnabled: false,
+      css3DRendererEnabled: false
+    }
   }
 
   /**
@@ -99,6 +125,36 @@ class BaseScene {
    *
    * @returns {BaseScene}
    */
+  prepareCSS2DRenderer() {
+    const width = window.innerWidth
+    const height = window.innerHeight
+    this.css2DRenderer.setSize(width, height)
+    this.css2DRenderer.domElement.style.position = 'absolute'
+    this.css2DRenderer.domElement.style.top = 0
+    document.body.appendChild(this.css2DRenderer.domElement)
+    this._options.css2DRendererEnabled = true
+    return this
+  }
+
+  /**
+   *
+   * @returns {BaseScene}
+   */
+  prepareCSS3DRenderer() {
+    const width = window.innerWidth
+    const height = window.innerHeight
+    this.css3DRenderer.setSize(width, height)
+    this.css3DRenderer.domElement.style.position = 'absolute'
+    this.css3DRenderer.domElement.style.top = 0
+    document.body.appendChild(this.css3DRenderer.domElement)
+    this._options.css3DRendererEnabled = true
+    return this
+  }
+
+  /**
+   *
+   * @returns {BaseScene}
+   */
   prepareCamera() {
     const width = window.innerWidth
     const height = window.innerHeight
@@ -117,8 +173,8 @@ class BaseScene {
    * @returns {BaseScene}
    */
   prepareScene() {
-    this.scene.background = new THREE.Color(0x050505)
-    this.scene.fog = new THREE.Fog(0x050505, 10, 50)
+    this.scene.background = new THREE.Color(0xFFFFFF)
+    this.scene.fog = new THREE.Fog(0xFFFFFF, 10, 50)
     return this
   }
 
@@ -137,11 +193,25 @@ class BaseScene {
    *
    * @returns {BaseScene}
    */
-  animate() {
-    const delta = this.clock.getDelta()
-    requestAnimationFrame(() => this.animate())
-    this.animationEvents.emit(ANIMATION, delta)
-    this.renderer.render(this.scene, this.camera)
+  onResize() {
+    const width = window.innerWidth
+    const height = window.innerHeight
+    this.renderer.setSize(width, height)
+    this.css2DRenderer.setSize(width, height)
+    this.css3DRenderer.setSize(width, height)
+    this.camera.aspect = width / height
+    this.camera.updateProjectionMatrix()
+    return this
+  }
+
+  /**
+   *
+   * @param {MouseEvent} event
+   * @returns {BaseScene}
+   */
+  onMouseMove(event) {
+    event.preventDefault()
+    this.mouse.updateMousePosition(event)
     return this
   }
 
@@ -149,12 +219,32 @@ class BaseScene {
    *
    * @returns {BaseScene}
    */
-  onResize() {
-    const width = window.innerWidth
-    const height = window.innerHeight
-    this.renderer.setSize(width, height)
-    this.camera.aspect = width / height
-    this.camera.updateProjectionMatrix()
+  animate() {
+    const delta = this.clock.getDelta()
+    requestAnimationFrame(() => this.animate())
+    this.animationEvents.emit(ANIMATION, delta)
+    this.renderer.render(this.scene, this.camera)
+    if (this._options.css2DRendererEnabled) {
+      this.css2DRenderer.render(this.scene, this.camera)
+    }
+    if (this._options.css3DRendererEnabled) {
+      this.css3DRenderer.render(this.scene, this.camera)
+    }
+    // this.mouse.intersectObjects(this.camera, this.scene.children, (object) => {
+    //   console.log('up', object)
+    // }, (object) => {
+    //   console.log('down', object)
+    // })
+    return this
+  }
+
+  /**
+   *
+   * @returns {BaseScene}
+   */
+  registrationEvents() {
+    window.addEventListener('resize', (event) => this.onResize(event), false)
+    window.addEventListener('mousemove', (event) => this.onMouseMove(event), false)
     return this
   }
 }
