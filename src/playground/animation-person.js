@@ -11,7 +11,7 @@ ground.rotation.x = - Math.PI / 2
 ground.material.map.repeat.set(30, 30)
 ground.material.map.wrapS = ground.material.map.wrapT = core.RepeatWrapping
 ground.receiveShadow = true
-baseScene.add(ground)
+baseScene.add(ground, { mouseClick: true })
 
 const loader = new core.GLTFLoader()
 loader.load('./src/playground/models/Soldier.glb', (gltf) => {
@@ -26,13 +26,13 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
   person
     .castShadow(true)
     .skeletonHelper(true)
-    .walk()
+    .run()
 
   const mapControls = new core.BaseSceneMapControls(baseScene)
 
   baseScene
     .add(light)
-    .add(person.model, { mouseIntersectRecursive: true })
+    .add(person.model, { mouseMoveRecursive: true, mouseClickRecursive: true })
     .add(person.skeleton)
     .prepareRenderer()
     .prepareCamera()
@@ -45,12 +45,16 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
       person.animate(delta)
       mapControls.update()
     })
-    .eventMouseUp((object) => {
-      object.material.opacity = 0.5
-      object.material.transparent = true
+    .eventMouseMoveUp((intersect) => {
+      intersect.object.material.opacity = 0.5
+      intersect.object.material.transparent = true
     })
-    .eventMouseDown((object) => {
-      object.material.opacity = 1
-      object.material.transparent = false
+    .eventMouseMoveDown((intersect) => {
+      intersect.object.material.opacity = 1
+      intersect.object.material.transparent = false
+    })
+    .eventMouseClick((intersect) => {
+      intersect.object.material.opacity = 0
+      intersect.object.material.transparent = true
     })
 })
