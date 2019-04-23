@@ -8,6 +8,7 @@ core.BaseScene.get()
   .prepareCSS3DRenderer()
   .prepareCamera()
   .prepareScene()
+  .registrationEvents()
   .append(appElement)
   .animate()
 
@@ -21,7 +22,6 @@ meshAnd3DObjectLabel.position.x = 5
 const meshAnd3DSpriteLabel = generateObjectAnd3DSpriteLabel()
 meshAnd3DSpriteLabel.position.z = -10
 meshAnd3DSpriteLabel.position.x = -5
-
 
 core.BaseScene.get()
   .add(meshAnd2DLabel)
@@ -40,10 +40,8 @@ core.BaseScene.get()
     meshAnd3DSpriteLabel.rotation.y += 0.01
     meshAnd3DSpriteLabel.rotation.z += 0.01
   })
-
-window.addEventListener('resize', () => {
-  core.BaseScene.get().onResize()
-}, false)
+  .onMouseUp((object) => {console.log(object, 'up')})
+  .onMouseDown((object) => {console.log(object, 'down')})
 
 function generateObjectAnd2DLabel() {
   const geometry = new core.BoxGeometry(0.9, 0.9, 0.9)

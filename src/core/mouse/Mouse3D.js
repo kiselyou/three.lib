@@ -12,7 +12,7 @@ class Mouse3D {
      *
      * @type {Vector2|Object}
      */
-    this.position = new THREE.Vector2()
+    this.position = new THREE.Vector2(100000, 100000)
 
     /**
      *
@@ -48,7 +48,6 @@ class Mouse3D {
     this.raycaster.setFromCamera(this.position, camera)
     const intersects = this.raycaster.intersectObjects(objects)
     if (intersects.length > 0) {
-      // console.log(this.intersectedObject)
       const intersected = intersects[0]['object']
       if (this.intersectedObject !== intersected) {
 

@@ -6,6 +6,8 @@ import Mouse3D from './mouse/Mouse3D'
 
 let inst = null
 const ANIMATION = 'base-scene-animation'
+const MOUSE_INTERSECT_UP = 'mouse_intersect_up'
+const MOUSE_INTERSECT_DOWN = 'mouse_intersect_down'
 
 class BaseScene {
   constructor() {
@@ -65,11 +67,11 @@ class BaseScene {
      *
      * @type {EventEmitter}
      */
-    this.animationEvents = new EventEmitter()
+    this.events = new EventEmitter()
 
     this._options = {
       css2DRendererEnabled: false,
-      css3DRendererEnabled: false
+      css3DRendererEnabled: false,
     }
   }
 
@@ -102,7 +104,34 @@ class BaseScene {
    * @returns {BaseScene}
    */
   onAnimate(callback) {
-    this.animationEvents.on(ANIMATION, callback)
+    this.events.on(ANIMATION, callback)
+    return this
+  }
+
+  /**
+   * @param {Object3D} object
+   * @callback mouseIntersection
+   */
+
+  /**
+   * Срабатывает при наведении курсора мыши на объект.
+   *
+   * @param {mouseIntersection} callback
+   * @returns {BaseScene}
+   */
+  onMouseUp(callback) {
+    this.events.on(MOUSE_INTERSECT_UP, callback)
+    return this
+  }
+
+  /**
+   * Срабатывает при потере курсора с объекта.
+   *
+   * @param {mouseIntersection} callback
+   * @returns {BaseScene}
+   */
+  onMouseDown(callback) {
+    this.events.on(MOUSE_INTERSECT_DOWN, callback)
     return this
   }
 
@@ -193,7 +222,7 @@ class BaseScene {
    *
    * @returns {BaseScene}
    */
-  onResize() {
+  updateSizeScene() {
     const width = window.innerWidth
     const height = window.innerHeight
     this.renderer.setSize(width, height)
@@ -209,7 +238,7 @@ class BaseScene {
    * @param {MouseEvent} event
    * @returns {BaseScene}
    */
-  onMouseMove(event) {
+  updateMousePosition(event) {
     event.preventDefault()
     this.mouse.updateMousePosition(event)
     return this
@@ -222,7 +251,7 @@ class BaseScene {
   animate() {
     const delta = this.clock.getDelta()
     requestAnimationFrame(() => this.animate())
-    this.animationEvents.emit(ANIMATION, delta)
+    this.events.emit(ANIMATION, delta)
     this.renderer.render(this.scene, this.camera)
     if (this._options.css2DRendererEnabled) {
       this.css2DRenderer.render(this.scene, this.camera)
@@ -230,11 +259,12 @@ class BaseScene {
     if (this._options.css3DRendererEnabled) {
       this.css3DRenderer.render(this.scene, this.camera)
     }
-    // this.mouse.intersectObjects(this.camera, this.scene.children, (object) => {
-    //   console.log('up', object)
-    // }, (object) => {
-    //   console.log('down', object)
-    // })
+    this.mouse.intersectObjects(
+      this.camera,
+      this.scene.children,
+      (object) => this.events.emit(MOUSE_INTERSECT_UP, object),
+      (object) => this.events.emit(MOUSE_INTERSECT_DOWN, object)
+    )
     return this
   }
 
@@ -243,8 +273,8 @@ class BaseScene {
    * @returns {BaseScene}
    */
   registrationEvents() {
-    window.addEventListener('resize', (event) => this.onResize(event), false)
-    window.addEventListener('mousemove', (event) => this.onMouseMove(event), false)
+    window.addEventListener('resize', () => this.updateSizeScene(), false)
+    window.addEventListener('mousemove', (event) => this.updateMousePosition(event), false)
     return this
   }
 }
