@@ -18,6 +18,7 @@ const CSS2DRenderer = function () {
 
 	var domElement = document.createElement( 'div' );
 	domElement.style.overflow = 'hidden';
+  domElement.style.pointerEvents = 'none';
 
 	this.domElement = domElement;
 

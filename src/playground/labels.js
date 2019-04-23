@@ -27,7 +27,7 @@ core.BaseScene.get()
   .add(meshAnd2DLabel)
   .add(meshAnd3DObjectLabel)
   .add(meshAnd3DSpriteLabel)
-  .onAnimate((delta) => {
+  .eventFrame((delta) => {
     meshAnd2DLabel.rotation.x += 0.01
     meshAnd2DLabel.rotation.y += 0.01
     meshAnd2DLabel.rotation.z += 0.01
@@ -40,8 +40,6 @@ core.BaseScene.get()
     meshAnd3DSpriteLabel.rotation.y += 0.01
     meshAnd3DSpriteLabel.rotation.z += 0.01
   })
-  .onMouseUp((object) => {console.log(object, 'up')})
-  .onMouseDown((object) => {console.log(object, 'down')})
 
 function generateObjectAnd2DLabel() {
   const geometry = new core.BoxGeometry(0.9, 0.9, 0.9)

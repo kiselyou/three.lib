@@ -15,6 +15,7 @@ baseScene
   .prepareRenderer()
   .prepareCamera()
   .prepareScene()
+  .registrationEvents()
   .append(appElement)
   .animate()
 
@@ -42,17 +43,13 @@ baseScene
   .add(meshes[1])
   .add(meshes[2])
   .add(target)
-  .onAnimate((delta) => {
+  .eventFrame((delta) => {
     for (const orientationTransform of transformArray) {
       orientationTransform.update(delta)
     }
   })
 
 updateTargetPosition()
-
-window.addEventListener('resize', () => {
-  baseScene.onResize()
-}, false)
 
 function updateTargetPosition() {
   target.position.copy(core.Vector3Helper.randomVector3(2))

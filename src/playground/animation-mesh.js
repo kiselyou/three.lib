@@ -6,6 +6,7 @@ core.BaseScene.get()
   .prepareRenderer()
   .prepareCamera()
   .prepareScene()
+  .registrationEvents()
   .append(appElement)
   .animate()
 
@@ -16,11 +17,7 @@ mesh.position.z = -2
 
 core.BaseScene.get()
   .add(mesh)
-  .onAnimate(() => {
+  .eventFrame(() => {
     mesh.rotation.x += 0.01
     mesh.rotation.y += 0.02
   })
-
-window.addEventListener('resize', () => {
-  core.BaseScene.get().onResize()
-}, false)

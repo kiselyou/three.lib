@@ -65,6 +65,18 @@ class BaseScene {
 
     /**
      *
+     * @type {Array.<Object3D>}
+     */
+    this.mouseIntersectObjects = []
+
+    /**
+     *
+     * @type {Array.<Object3D>}
+     */
+    this.mouseIntersectRecursiveObjects = []
+
+    /**
+     *
      * @type {EventEmitter}
      */
     this.events = new EventEmitter()
@@ -84,12 +96,25 @@ class BaseScene {
   }
 
   /**
+   * @typedef {Object} Object3DOptions
+   * @property {boolean} [mouseIntersect] - при наведении или потери курсора мыши будет срабатывать событие eventMouseUp|eventMouseDown
+   * @property {boolean} [mouseIntersectRecursive] - при наведении или потери курсора мыши будет срабатывать событие eventMouseUp|eventMouseDown
+   */
+
+  /**
    *
    * @param {Object3D} object3D
+   * @param {Object3DOptions} [options]
    * @returns {BaseScene}
    */
-  add(object3D) {
+  add(object3D, options = {}) {
     this.scene.add(object3D)
+    if (options.mouseIntersect === true && options.mouseIntersectRecursive !== true) {
+      this.mouseIntersectObjects.push(object3D)
+    }
+    if (options.mouseIntersectRecursive === true) {
+      this.mouseIntersectRecursiveObjects.push(object3D)
+    }
     return this
   }
 
@@ -99,11 +124,12 @@ class BaseScene {
    */
 
   /**
+   * Срабатывает при генерации каждого кадра.
    *
    * @param {baseSceneAnimation} callback
    * @returns {BaseScene}
    */
-  onAnimate(callback) {
+  eventFrame(callback) {
     this.events.on(ANIMATION, callback)
     return this
   }
@@ -119,7 +145,7 @@ class BaseScene {
    * @param {mouseIntersection} callback
    * @returns {BaseScene}
    */
-  onMouseUp(callback) {
+  eventMouseUp(callback) {
     this.events.on(MOUSE_INTERSECT_UP, callback)
     return this
   }
@@ -130,7 +156,7 @@ class BaseScene {
    * @param {mouseIntersection} callback
    * @returns {BaseScene}
    */
-  onMouseDown(callback) {
+  eventMouseDown(callback) {
     this.events.on(MOUSE_INTERSECT_DOWN, callback)
     return this
   }
@@ -219,6 +245,44 @@ class BaseScene {
   }
 
   /**
+   * This is main method to animate scene.
+   *
+   * @returns {BaseScene}
+   */
+  animate() {
+    const delta = this.clock.getDelta()
+    requestAnimationFrame(() => this.animate())
+    this.events.emit(ANIMATION, delta)
+    this.renderer.render(this.scene, this.camera)
+    if (this._options.css2DRendererEnabled) {
+      this.css2DRenderer.render(this.scene, this.camera)
+    }
+    if (this._options.css3DRendererEnabled) {
+      this.css3DRenderer.render(this.scene, this.camera)
+    }
+    if (this.mouseIntersectObjects.length > 0) {
+      this.mouse.intersectObjects(
+        this.camera,
+        this.mouseIntersectObjects,
+        false,
+        (object) => this.events.emit(MOUSE_INTERSECT_UP, object),
+        (object) => this.events.emit(MOUSE_INTERSECT_DOWN, object)
+      )
+    }
+    if (this.mouseIntersectRecursiveObjects.length > 0) {
+      this.mouse.intersectObjects(
+        this.camera,
+        this.mouseIntersectRecursiveObjects,
+        true,
+        (object) => this.events.emit(MOUSE_INTERSECT_UP, object),
+        (object) => this.events.emit(MOUSE_INTERSECT_DOWN, object)
+      )
+    }
+    return this
+  }
+
+  /**
+   * Use this method inside 'resize' event listener or use method 'registrationEvents' instead.
    *
    * @returns {BaseScene}
    */
@@ -234,6 +298,7 @@ class BaseScene {
   }
 
   /**
+   * Use this method inside 'mousemove' event listener or use method 'registrationEvents' instead.
    *
    * @param {MouseEvent} event
    * @returns {BaseScene}
@@ -245,30 +310,7 @@ class BaseScene {
   }
 
   /**
-   *
-   * @returns {BaseScene}
-   */
-  animate() {
-    const delta = this.clock.getDelta()
-    requestAnimationFrame(() => this.animate())
-    this.events.emit(ANIMATION, delta)
-    this.renderer.render(this.scene, this.camera)
-    if (this._options.css2DRendererEnabled) {
-      this.css2DRenderer.render(this.scene, this.camera)
-    }
-    if (this._options.css3DRendererEnabled) {
-      this.css3DRenderer.render(this.scene, this.camera)
-    }
-    this.mouse.intersectObjects(
-      this.camera,
-      this.scene.children,
-      (object) => this.events.emit(MOUSE_INTERSECT_UP, object),
-      (object) => this.events.emit(MOUSE_INTERSECT_DOWN, object)
-    )
-    return this
-  }
-
-  /**
+   * This method registrate all necessary event to scene.
    *
    * @returns {BaseScene}
    */

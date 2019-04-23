@@ -41,12 +41,13 @@ class Mouse3D {
    *
    * @param {Camera} camera
    * @param {Array} objects
+   * @param {boolean} recursive
    * @param {IntersectCallback} onMouseUp - Объект с которым пересикается курсор.
    * @param {IntersectCallback} onMouseDown - Объект с которого убран курсор.
    */
-  intersectObjects(camera, objects, onMouseUp, onMouseDown) {
+  intersectObjects(camera, objects, recursive, onMouseUp, onMouseDown) {
     this.raycaster.setFromCamera(this.position, camera)
-    const intersects = this.raycaster.intersectObjects(objects)
+    const intersects = this.raycaster.intersectObjects(objects, recursive)
     if (intersects.length > 0) {
       const intersected = intersects[0]['object']
       if (this.intersectedObject !== intersected) {

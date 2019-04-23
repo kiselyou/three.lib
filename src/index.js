@@ -1,5 +1,5 @@
 import './less/bootstrap.less'
 // import './playground/animation-mesh'
-// import './playground/animation-person'
+import './playground/animation-person'
 // import './playground/orientation-transform'
-import './playground/labels'
+// import './playground/labels'

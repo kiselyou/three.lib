@@ -32,19 +32,25 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
 
   baseScene
     .add(light)
-    .add(person.model)
+    .add(person.model, { mouseIntersectRecursive: true })
     .add(person.skeleton)
-    .onAnimate((delta) => {
-      person.animate(delta)
-      mapControls.update()
-    })
     .prepareRenderer()
     .prepareCamera()
     .prepareScene()
+    .prepareCSS2DRenderer()
+    .registrationEvents()
     .append(appElement)
     .animate()
+    .eventFrame((delta) => {
+      person.animate(delta)
+      mapControls.update()
+    })
+    .eventMouseUp((object) => {
+      object.material.opacity = 0.5
+      object.material.transparent = true
+    })
+    .eventMouseDown((object) => {
+      object.material.opacity = 1
+      object.material.transparent = false
+    })
 })
-
-window.addEventListener('resize', () => {
-  baseScene.onResize()
-}, false)
