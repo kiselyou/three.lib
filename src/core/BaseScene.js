@@ -245,6 +245,21 @@ class BaseScene {
   }
 
   /**
+   *
+   * @param {Array.<Object3D>} objects
+   * @param {boolean} recursive
+   * @param {Function} onMouseUp
+   * @param {Function} onMouseDown
+   * @returns {BaseScene}
+   */
+  mouseIntersect(objects, recursive, onMouseUp, onMouseDown) {
+    if (objects.length > 0) {
+      this.mouse.intersectObjects(this.camera, objects, recursive, onMouseUp, onMouseDown)
+    }
+    return this
+  }
+
+  /**
    * This is main method to animate scene.
    *
    * @returns {BaseScene}
@@ -260,24 +275,17 @@ class BaseScene {
     if (this._options.css3DRendererEnabled) {
       this.css3DRenderer.render(this.scene, this.camera)
     }
-    if (this.mouseIntersectObjects.length > 0) {
-      this.mouse.intersectObjects(
-        this.camera,
-        this.mouseIntersectObjects,
-        false,
-        (object) => this.events.emit(MOUSE_INTERSECT_UP, object),
-        (object) => this.events.emit(MOUSE_INTERSECT_DOWN, object)
-      )
-    }
-    if (this.mouseIntersectRecursiveObjects.length > 0) {
-      this.mouse.intersectObjects(
-        this.camera,
-        this.mouseIntersectRecursiveObjects,
-        true,
-        (object) => this.events.emit(MOUSE_INTERSECT_UP, object),
-        (object) => this.events.emit(MOUSE_INTERSECT_DOWN, object)
-      )
-    }
+
+    this.mouseIntersect(this.mouseIntersectObjects, false,
+      (object) => this.events.emit(MOUSE_INTERSECT_UP, object),
+      (object) => this.events.emit(MOUSE_INTERSECT_DOWN, object)
+    )
+
+    this.mouseIntersect(this.mouseIntersectRecursiveObjects, true,
+      (object) => this.events.emit(MOUSE_INTERSECT_UP, object),
+      (object) => this.events.emit(MOUSE_INTERSECT_DOWN, object)
+    )
+
     return this
   }
 
