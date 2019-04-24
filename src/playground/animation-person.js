@@ -9,9 +9,10 @@ const gm = new core.MeshPhongMaterial({ color: 0xffffff, map: gt })
 const ground = new core.Mesh(gg, gm)
 ground.rotation.x = - Math.PI / 2
 ground.material.map.repeat.set(30, 30)
-ground.material.map.wrapS = ground.material.map.wrapT = core.RepeatWrapping
+ground.material.map.wrapS = core.RepeatWrapping
+ground.material.map.wrapT = core.RepeatWrapping
 ground.receiveShadow = true
-baseScene.add(ground, { mouseClick: true })
+// baseScene.add(ground)
 
 const loader = new core.GLTFLoader()
 loader.load('./src/playground/models/Soldier.glb', (gltf) => {
@@ -29,10 +30,26 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
     .run()
 
   const mapControls = new core.BaseSceneMapControls(baseScene)
+  const personModel = new core.BaseModel(person.model)
+
+  personModel
+    .setIntersectRecursive()
+    .addEventMouseMoveUp((intersect) => {
+      intersect.object.material.opacity = 0.5
+      intersect.object.material.transparent = true
+    })
+    .addEventMouseMoveDown((intersect) => {
+      intersect.object.material.opacity = 1
+      intersect.object.material.transparent = false
+    })
+    .addEventMouseClick((intersect) => {
+      intersect.object.material.opacity = 0
+      intersect.object.material.transparent = true
+    })
 
   baseScene
     .add(light)
-    .add(person.model, { mouseMoveRecursive: true, mouseClickRecursive: true })
+    .add(personModel)
     .add(person.skeleton)
     .prepareRenderer()
     .prepareCamera()
@@ -44,17 +61,5 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
     .eventFrame((delta) => {
       person.animate(delta)
       mapControls.update()
-    })
-    .eventMouseMoveUp((intersect) => {
-      intersect.object.material.opacity = 0.5
-      intersect.object.material.transparent = true
-    })
-    .eventMouseMoveDown((intersect) => {
-      intersect.object.material.opacity = 1
-      intersect.object.material.transparent = false
-    })
-    .eventMouseClick((intersect) => {
-      intersect.object.material.opacity = 0
-      intersect.object.material.transparent = true
     })
 })

@@ -3,6 +3,8 @@ import EventEmitter from 'events'
 import CSS2DRenderer from './css-renderer/CSS2DRenderer'
 import CSS3DRenderer from './css-renderer/CSS3DRenderer'
 import Mouse3D from './mouse/Mouse3D'
+import IntersectBaseModels from './IntersectBaseModels'
+import BaseModel from './BaseModel'
 
 let inst = null
 const ANIMATION = 'base-scene-animation'
@@ -67,14 +69,9 @@ class BaseScene {
     /**
      * List objects to calculate intersection.
      *
-     * @type {{mouseClick: Array, mouseClickRecursive: Array, mouseMove: Array, mouseMoveRecursive: Array}}
+     * @type {IntersectBaseModels}
      */
-    this.intersectObjects = {
-      mouseClick: [],
-      mouseClickRecursive: [],
-      mouseMove: [],
-      mouseMoveRecursive: []
-    }
+    this.intersectBaseModels = new IntersectBaseModels()
 
     /**
      *
@@ -97,35 +94,14 @@ class BaseScene {
   }
 
   /**
-   * Параметры пересечения курсора мыши с объектом.
-   * Т.е. условия при которых сработает расчет пересечения курсора с объектом и вызов соответствующего калбэка.
    *
-   * @typedef {Object} IntersectOptions
-   * @property {boolean} [mouseMove] - при наведении или потери курсора мыши будет срабатывать событие eventMouseUp|eventMouseDown
-   * @property {boolean} [mouseMoveRecursive] - при наведении или потери курсора мыши будет срабатывать событие eventMouseUp|eventMouseDown
-   * @property {boolean} [mouseClick] - при клике по объекту будет срабатывать событие eventMouseClick
-   * @property {boolean} [mouseClickRecursive] - при клике по объекту будет срабатывать событие eventMouseClick
-   */
-
-  /**
-   *
-   * @param {Object3D} object3D
-   * @param {IntersectOptions} [intersectOptions]
+   * @param {BaseModel|Object3D} object3D
    * @returns {BaseScene}
    */
-  add(object3D, intersectOptions = {}) {
+  add(object3D) {
     this.scene.add(object3D)
-    if (intersectOptions.mouseMove === true && intersectOptions.mouseMoveRecursive !== true) {
-      this.intersectObjects.mouseMove.push(object3D)
-    }
-    if (intersectOptions.mouseMoveRecursive === true) {
-      this.intersectObjects.mouseMoveRecursive.push(object3D)
-    }
-    if (intersectOptions.mouseClick === true && intersectOptions.mouseClickRecursive !== true) {
-      this.intersectObjects.mouseClick.push(object3D)
-    }
-    if (intersectOptions.mouseClickRecursive === true) {
-      this.intersectObjects.mouseClickRecursive.push(object3D)
+    if (object3D instanceof BaseModel) {
+      this.intersectBaseModels.add(object3D)
     }
     return this
   }
@@ -143,44 +119,6 @@ class BaseScene {
    */
   eventFrame(callback) {
     this.events.on(ANIMATION, callback)
-    return this
-  }
-
-  /**
-   * @param {Object3D} intersect
-   * @callback mouseIntersection
-   */
-
-  /**
-   * Срабатывает при наведении курсора мыши на объект.
-   *
-   * @param {mouseIntersection} callback
-   * @returns {BaseScene}
-   */
-  eventMouseMoveUp(callback) {
-    this.events.on(MOUSE_MOVE_UP, callback)
-    return this
-  }
-
-  /**
-   * Срабатывает при потере курсора с объекта.
-   *
-   * @param {mouseIntersection} callback
-   * @returns {BaseScene}
-   */
-  eventMouseMoveDown(callback) {
-    this.events.on(MOUSE_MOVE_DOWN, callback)
-    return this
-  }
-
-  /**
-   * Срабатывает при слике по объекту.
-   *
-   * @param {mouseIntersection} callback
-   * @returns {BaseScene}
-   */
-  eventMouseClick(callback) {
-    this.events.on(MOUSE_CLICK, callback)
     return this
   }
 
@@ -299,12 +237,12 @@ class BaseScene {
       this.css3DRenderer.render(this.scene, this.camera)
     }
 
-    this.mouseMoveIntersect(this.intersectObjects.mouseMove, false,
+    this.mouseMoveIntersect(this.intersectBaseModels.onMouseMove, false,
       (object) => this.events.emit(MOUSE_MOVE_UP, object),
       (object) => this.events.emit(MOUSE_MOVE_DOWN, object)
     )
 
-    this.mouseMoveIntersect(this.intersectObjects.mouseMoveRecursive, true,
+    this.mouseMoveIntersect(this.intersectBaseModels.onMouseMoveRecursive, true,
       (object) => this.events.emit(MOUSE_MOVE_UP, object),
       (object) => this.events.emit(MOUSE_MOVE_DOWN, object)
     )
@@ -346,17 +284,28 @@ class BaseScene {
    */
   mouseClick(event) {
     this.updateMousePosition(event)
-    let object = null
-    if (this.intersectObjects.mouseClick.length > 0) {
-      object = this.mouse.getIntersectedObject(this.camera, this.intersectObjects.mouseClick, false)
+    const objects = []
+    if (this.intersectBaseModels.onMouseClick.length > 0) {
+      const object = this.mouse.getIntersectedObject(this.camera, this.intersectBaseModels.onMouseClick, false)
+      if (object) {
+        objects.push(object)
+      }
     }
 
-    if (!object && this.intersectObjects.mouseClickRecursive.length > 0) {
-      object = this.mouse.getIntersectedObject(this.camera, this.intersectObjects.mouseClickRecursive, true)
+    if (this.intersectBaseModels.onMouseClickRecursive.length > 0) {
+      const object = this.mouse.getIntersectedObject(this.camera, this.intersectBaseModels.onMouseClickRecursive, true)
+      console.log(object)
+      if (object) {
+        objects.push(object)
+      }
     }
 
-    if (object) {
-      this.events.emit(MOUSE_CLICK, object)
+    objects.sort((a, b) => {
+      return a.distance < b.distance ? -1 : 1
+    })
+
+    if (objects.length > 0) {
+      this.events.emit(MOUSE_CLICK, objects[0])
     }
   }
 
