@@ -47,8 +47,8 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
       intersect.object.material.transparent = true
     })
 
-  const debug = new core.StatusBaseScene()
-  debug
+  const stats = new core.StatusBaseScene()
+  stats
     .showMSPanel()
     .showMBPanel()
     .showFPSPanel()
@@ -66,13 +66,13 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
     .append(appElement)
     .render()
     .beforeFrameUpdate(() => {
-      debug.begin()
+      stats.begin()
     })
     .onFrameUpdate((delta) => {
       person.animate(delta)
       mapControls.update()
     })
     .afterFrameUpdate(() => {
-      debug.end()
+      stats.end()
     })
 })
