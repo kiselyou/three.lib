@@ -118,7 +118,7 @@ class GLTFAnimationPerson {
    * @param {number} delta
    * @returns {void}
    */
-  animate(delta) {
+  update(delta) {
     this.mixer.update(delta)
   }
 }

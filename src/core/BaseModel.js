@@ -10,12 +10,6 @@ class BaseModel extends Object3D {
 
     /**
      *
-     * @type {boolean}
-     */
-    this.isIntersectRecursive = false
-
-    /**
-     *
      * @type {EventEmitter}
      */
     this.events = new EventEmitter()
@@ -23,24 +17,14 @@ class BaseModel extends Object3D {
 
   /**
    *
-   * @returns {{isIntersectRecursive: boolean, isIntersectOnMouseClick: boolean, isIntersectOnMouseMove: boolean}}
+   * @returns {{isIntersectOnMouseClick: boolean, isIntersectOnMouseMove: boolean}}
    */
   getIntersectModelOptions() {
     const events = this.events.eventNames()
     return {
-      isIntersectRecursive: this.isIntersectRecursive,
       isIntersectOnMouseClick: events.includes(BaseModel.EVENT_MOUSE_CLICK),
       isIntersectOnMouseMove: events.includes(BaseModel.EVENT_MOUSE_MOVE_UP) || events.includes(BaseModel.EVENT_MOUSE_MOVE_DOWN),
     }
-  }
-
-  /**
-   *
-   * @returns {BaseModel}
-   */
-  setIntersectRecursive() {
-    this.isIntersectRecursive = true
-    return this
   }
 
   /**

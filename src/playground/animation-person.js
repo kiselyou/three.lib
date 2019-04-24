@@ -12,7 +12,6 @@ ground.material.map.repeat.set(30, 30)
 ground.material.map.wrapS = core.RepeatWrapping
 ground.material.map.wrapT = core.RepeatWrapping
 ground.receiveShadow = true
-baseScene.add(ground)
 
 const loader = new core.GLTFLoader()
 loader.load('./src/playground/models/Soldier.glb', (gltf) => {
@@ -32,8 +31,15 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
   const mapControls = new core.BaseSceneMapControls(baseScene)
   const personModel = new core.BaseModel(person.model)
 
+  const transform = new core.OrientationTransform(personModel, 1.5)
+
+  const groundModel = new core.BaseModel(ground)
+  groundModel
+    .addEventMouseClick((intersect) => {
+      transform.setTarget(intersect.point)
+    })
+
   personModel
-    .setIntersectRecursive()
     .addEventMouseMoveUp((intersect) => {
       intersect.object.material.opacity = 0.5
       intersect.object.material.transparent = true
@@ -58,6 +64,7 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
     .add(light)
     .add(personModel)
     .add(person.skeleton)
+    .add(groundModel)
     .prepareRenderer()
     .prepareCamera()
     .prepareScene()
@@ -69,7 +76,8 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
       stats.begin()
     })
     .onFrameUpdate((delta) => {
-      person.animate(delta)
+      person.update(delta)
+      transform.update(delta)
       mapControls.update()
     })
     .afterFrameUpdate(() => {

@@ -71,7 +71,7 @@ class BaseScene {
      *
      * @type {IntersectBaseModels}
      */
-    this.intersectBaseModels = new IntersectBaseModels()
+    this.intersects = new IntersectBaseModels()
 
     /**
      *
@@ -101,7 +101,7 @@ class BaseScene {
   add(object3D) {
     this.scene.add(object3D)
     if (object3D instanceof BaseModel) {
-      this.intersectBaseModels.add(object3D)
+      this.intersects.add(object3D)
     }
     return this
   }
@@ -272,18 +272,7 @@ class BaseScene {
     const delta = this.clock.getDelta()
     this.events.emit(BEFORE_FRAME_UPDATE, delta)
     this.events.emit(FRAME_UPDATE, delta)
-    this.mouseMoveIntersect(this.intersectBaseModels.onMouseMove, false,
-      (intersect) => {
-        const baseModel = this.findBaseModel(intersect.object)
-        baseModel.emit(BaseModel.EVENT_MOUSE_MOVE_UP, intersect)
-      },
-      (intersect) => {
-        const baseModel = this.findBaseModel(intersect.object)
-        baseModel.emit(BaseModel.EVENT_MOUSE_MOVE_DOWN, intersect)
-      }
-    )
-
-    this.mouseMoveIntersect(this.intersectBaseModels.onMouseMoveRecursive, true,
+    this.mouseMoveIntersect(this.intersects.onMouseMove, true,
       (intersect) => {
         const baseModel = this.findBaseModel(intersect.object)
         baseModel.emit(BaseModel.EVENT_MOUSE_MOVE_UP, intersect)
@@ -340,15 +329,8 @@ class BaseScene {
   mouseClick(event) {
     this.updateMousePosition(event)
     const intersects = []
-    if (this.intersectBaseModels.onMouseClick.length > 0) {
-      const intersect = this.mouse.getIntersectedObject(this.camera, this.intersectBaseModels.onMouseClick, false)
-      if (intersect) {
-        intersects.push(intersect)
-      }
-    }
-
-    if (this.intersectBaseModels.onMouseClickRecursive.length > 0) {
-      const intersect = this.mouse.getIntersectedObject(this.camera, this.intersectBaseModels.onMouseClickRecursive, true)
+    if (this.intersects.onMouseClick.length > 0) {
+      const intersect = this.mouse.getIntersectedObject(this.camera, this.intersects.onMouseClick, true)
       if (intersect) {
         intersects.push(intersect)
       }

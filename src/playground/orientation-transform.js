@@ -17,7 +17,7 @@ baseScene
   .prepareScene()
   .registrationEvents()
   .append(appElement)
-  .animate()
+  .render()
 
 new core.BaseSceneMapControls(baseScene)
 
@@ -43,7 +43,7 @@ baseScene
   .add(meshes[1])
   .add(meshes[2])
   .add(target)
-  .eventFrame((delta) => {
+  .onFrameUpdate((delta) => {
     for (const orientationTransform of transformArray) {
       orientationTransform.update(delta)
     }
