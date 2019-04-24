@@ -36,6 +36,25 @@ class OrientationTransform {
      * @type {Vector3}
      */
     this.target = new THREE.Vector3()
+
+    /**
+     *
+     * @type {Vector3}
+     * @private
+     */
+    this._v = new THREE.Vector3()
+  }
+
+  /**
+   * TODO: move this methos
+   * Направление текущего объекта мире.
+   *
+   * @returns {Vector3}
+   */
+  getDirection() {
+    this._v.applyQuaternion(this.mesh.quaternion)
+    this.mesh.getWorldDirection(this._v)
+    return this._v.clone()
   }
 
   /**
@@ -66,10 +85,12 @@ class OrientationTransform {
    * @returns {void}
    */
   update(delta) {
+    const step = this.speed * delta
     if (!this.mesh.quaternion.equals(this.targetRotation)) {
-      const step = this.speed * delta
       this.mesh.quaternion.rotateTowards(this.targetRotation, step)
     }
+    // TODO: move this line
+    this.mesh.position.addScaledVector(this.getDirection(), step)
   }
 }
 
