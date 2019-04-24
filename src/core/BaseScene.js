@@ -5,12 +5,12 @@ import CSS3DRenderer from './css-renderer/CSS3DRenderer'
 import Mouse3D from './mouse/Mouse3D'
 import IntersectBaseModels from './IntersectBaseModels'
 import BaseModel from './BaseModel'
+import objectPath from 'object-path'
 
 let inst = null
-const ANIMATION = 'base-scene-animation'
-const MOUSE_MOVE_UP = 'mouse_move_up'
-const MOUSE_MOVE_DOWN = 'mouse_move_down'
-const MOUSE_CLICK = 'mouse_click'
+const BEFORE_FRAME_UPDATE = 'BEFORE_FRAME_UPDATE'
+const AFTER_FRAME_UPDATE = 'AFTER_FRAME_UPDATE'
+const FRAME_UPDATE = 'FRAME_UPDATE'
 
 class BaseScene {
   constructor() {
@@ -117,8 +117,36 @@ class BaseScene {
    * @param {baseSceneAnimation} callback
    * @returns {BaseScene}
    */
-  eventFrame(callback) {
-    this.events.on(ANIMATION, callback)
+  onFrameUpdate(callback) {
+    this.events.addListener(FRAME_UPDATE, callback)
+    return this
+  }
+
+  /**
+   *
+   * @param {baseSceneAnimation} callback
+   * @returns {BaseScene}
+   */
+  beforeFrameUpdate(callback) {
+    if (this.events.listenerCount(BEFORE_FRAME_UPDATE) === 0) {
+      this.events.addListener(BEFORE_FRAME_UPDATE, callback)
+    } else {
+      throw new Error('beforeFrameUpdate listener has already exists.')
+    }
+    return this
+  }
+
+  /**
+   *
+   * @param {baseSceneAnimation} callback
+   * @returns {BaseScene}
+   */
+  afterFrameUpdate(callback) {
+    if (this.events.listenerCount(AFTER_FRAME_UPDATE) === 0) {
+      this.events.addListener(AFTER_FRAME_UPDATE, callback)
+    } else {
+      throw new Error('afterFrameUpdate listener has already exists.')
+    }
     return this
   }
 
@@ -206,11 +234,26 @@ class BaseScene {
   }
 
   /**
+   * @typedef {Object} IntersectDetails
+   * @property {number} distance
+   * @property {Face3} face
+   * @property {number} faceIndex
+   * @property {Object3D} object
+   * @property {Vector3} point
+   * @property {Vector2} uv
+   */
+
+  /**
+   * @param {IntersectDetails} intersect
+   * @callback IntersectCallback
+   */
+
+  /**
    *
    * @param {Array.<Object3D>} objects
    * @param {boolean} recursive
-   * @param {Function} onMouseUp
-   * @param {Function} onMouseDown
+   * @param {IntersectCallback} onMouseUp
+   * @param {IntersectCallback} onMouseDown
    * @returns {BaseScene}
    */
   mouseMoveIntersect(objects, recursive, onMouseUp, onMouseDown) {
@@ -225,28 +268,40 @@ class BaseScene {
    *
    * @returns {BaseScene}
    */
-  animate() {
+  render() {
     const delta = this.clock.getDelta()
-    requestAnimationFrame(() => this.animate())
-    this.events.emit(ANIMATION, delta)
-    this.renderer.render(this.scene, this.camera)
+    this.events.emit(BEFORE_FRAME_UPDATE, delta)
+    this.events.emit(FRAME_UPDATE, delta)
+    this.mouseMoveIntersect(this.intersectBaseModels.onMouseMove, false,
+      (intersect) => {
+        const baseModel = this.findBaseModel(intersect.object)
+        baseModel.emit(BaseModel.EVENT_MOUSE_MOVE_UP, intersect)
+      },
+      (intersect) => {
+        const baseModel = this.findBaseModel(intersect.object)
+        baseModel.emit(BaseModel.EVENT_MOUSE_MOVE_DOWN, intersect)
+      }
+    )
+
+    this.mouseMoveIntersect(this.intersectBaseModels.onMouseMoveRecursive, true,
+      (intersect) => {
+        const baseModel = this.findBaseModel(intersect.object)
+        baseModel.emit(BaseModel.EVENT_MOUSE_MOVE_UP, intersect)
+      },
+      (intersect) => {
+        const baseModel = this.findBaseModel(intersect.object)
+        baseModel.emit(BaseModel.EVENT_MOUSE_MOVE_DOWN, intersect)
+      }
+    )
     if (this._options.css2DRendererEnabled) {
       this.css2DRenderer.render(this.scene, this.camera)
     }
     if (this._options.css3DRendererEnabled) {
       this.css3DRenderer.render(this.scene, this.camera)
     }
-
-    this.mouseMoveIntersect(this.intersectBaseModels.onMouseMove, false,
-      (object) => this.events.emit(MOUSE_MOVE_UP, object),
-      (object) => this.events.emit(MOUSE_MOVE_DOWN, object)
-    )
-
-    this.mouseMoveIntersect(this.intersectBaseModels.onMouseMoveRecursive, true,
-      (object) => this.events.emit(MOUSE_MOVE_UP, object),
-      (object) => this.events.emit(MOUSE_MOVE_DOWN, object)
-    )
-
+    this.renderer.render(this.scene, this.camera)
+    this.events.emit(AFTER_FRAME_UPDATE, delta)
+    requestAnimationFrame(() => this.render())
     return this
   }
 
@@ -284,29 +339,46 @@ class BaseScene {
    */
   mouseClick(event) {
     this.updateMousePosition(event)
-    const objects = []
+    const intersects = []
     if (this.intersectBaseModels.onMouseClick.length > 0) {
-      const object = this.mouse.getIntersectedObject(this.camera, this.intersectBaseModels.onMouseClick, false)
-      if (object) {
-        objects.push(object)
+      const intersect = this.mouse.getIntersectedObject(this.camera, this.intersectBaseModels.onMouseClick, false)
+      if (intersect) {
+        intersects.push(intersect)
       }
     }
 
     if (this.intersectBaseModels.onMouseClickRecursive.length > 0) {
-      const object = this.mouse.getIntersectedObject(this.camera, this.intersectBaseModels.onMouseClickRecursive, true)
-      console.log(object)
-      if (object) {
-        objects.push(object)
+      const intersect = this.mouse.getIntersectedObject(this.camera, this.intersectBaseModels.onMouseClickRecursive, true)
+      if (intersect) {
+        intersects.push(intersect)
       }
     }
 
-    objects.sort((a, b) => {
-      return a.distance < b.distance ? -1 : 1
-    })
+    if (intersects.length > 0) {
+      intersects.sort((a, b) => {
+        return a.distance < b.distance ? -1 : 1
+      })
 
-    if (objects.length > 0) {
-      this.events.emit(MOUSE_CLICK, objects[0])
+      const object = objectPath.get(intersects, [0, 'object'])
+      const baseModel = this.findBaseModel(object)
+      baseModel.emit(BaseModel.EVENT_MOUSE_CLICK, intersects[0])
     }
+  }
+
+  /**
+   *
+   * @param {Object3D|BaseModel|?} object
+   * @returns {BaseModel|?}
+   */
+  findBaseModel(object) {
+    if (object instanceof BaseModel) {
+      return object
+    }
+    if (object) {
+      const parent = objectPath.get(object, 'parent', null)
+      return this.findBaseModel(parent)
+    }
+    return null
   }
 
   /**

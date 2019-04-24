@@ -1,6 +1,7 @@
 export * from 'three'
 export { default as BaseScene } from './BaseScene'
 export { default as BaseModel } from './BaseModel'
+export { default as StatusBaseScene } from './StatusBaseScene'
 export { default as IntersectBaseModels } from './IntersectBaseModels'
 export { default as BaseSceneLight } from './BaseSceneLight'
 export { default as BaseSceneMapControls } from './BaseSceneMapControls'

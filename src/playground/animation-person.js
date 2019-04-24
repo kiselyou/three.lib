@@ -12,7 +12,7 @@ ground.material.map.repeat.set(30, 30)
 ground.material.map.wrapS = core.RepeatWrapping
 ground.material.map.wrapT = core.RepeatWrapping
 ground.receiveShadow = true
-// baseScene.add(ground)
+baseScene.add(ground)
 
 const loader = new core.GLTFLoader()
 loader.load('./src/playground/models/Soldier.glb', (gltf) => {
@@ -47,6 +47,13 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
       intersect.object.material.transparent = true
     })
 
+  const debug = new core.StatusBaseScene()
+  debug
+    .showMSPanel()
+    .showMBPanel()
+    .showFPSPanel()
+    .show()
+
   baseScene
     .add(light)
     .add(personModel)
@@ -57,9 +64,15 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
     .prepareCSS2DRenderer()
     .registrationEvents()
     .append(appElement)
-    .animate()
-    .eventFrame((delta) => {
+    .render()
+    .beforeFrameUpdate(() => {
+      debug.begin()
+    })
+    .onFrameUpdate((delta) => {
       person.animate(delta)
       mapControls.update()
+    })
+    .afterFrameUpdate(() => {
+      debug.end()
     })
 })
