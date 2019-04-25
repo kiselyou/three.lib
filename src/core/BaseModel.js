@@ -1,5 +1,6 @@
 import { Object3D } from 'three'
 import EventEmitter from 'events'
+import * as THREE from "three/src/Three";
 
 class BaseModel extends Object3D {
   constructor(object) {

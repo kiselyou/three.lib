@@ -26,17 +26,19 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
   person
     .castShadow(true)
     .skeletonHelper(true)
-    .run()
+    // .run()
+    .walk()
 
   const mapControls = new core.BaseSceneMapControls(baseScene)
   const personModel = new core.BaseModel(person.model)
+  personModel.children[0]['rotation']['y'] = Math.PI
 
-  const transform = new core.OrientationTransform(personModel, 1.5)
+  const modelControls = new core.BaseModelControls(personModel)
 
   const groundModel = new core.BaseModel(ground)
   groundModel
     .addEventMouseClick((intersect) => {
-      transform.setTarget(intersect.point)
+      modelControls.setTarget(intersect.point)
     })
 
   personModel
@@ -77,7 +79,7 @@ loader.load('./src/playground/models/Soldier.glb', (gltf) => {
     })
     .onFrameUpdate((delta) => {
       person.update(delta)
-      transform.update(delta)
+      modelControls.update(delta)
       mapControls.update()
     })
     .afterFrameUpdate(() => {
